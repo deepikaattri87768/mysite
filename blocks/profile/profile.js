@@ -1,35 +1,35 @@
-import { fetchPlaceholders,getMetadata } from '../../scripts/aem.js';
+import { fetchPlaceholders, getMetadata } from "../../scripts/aem.js";
 // let sheetdata = null;
 let currentPage = 1;
 const itemsPerPage = 20;
-let jsonURL = ""
+let jsonURL = "";
 
 // Create Table Header
 async function createTableHeader(table) {
-  let tr = document.createElement('tr');
-  let countryth = document.createElement('th');
-  countryth.innerText = 'Country';
-  let abbreviationth = document.createElement('th');
-  abbreviationth.innerText = 'Abbreviation';
-  let capitalth = document.createElement('th');
-  capitalth.innerText = 'Capital City';
-  let continentth = document.createElement('th');
-  continentth.innerText = 'Continent';
-  tr.append(countryth,abbreviationth,capitalth,continentth);
+  let tr = document.createElement("tr");
+  let countryth = document.createElement("th");
+  countryth.innerText = "Country";
+  let abbreviationth = document.createElement("th");
+  abbreviationth.innerText = "Abbreviation";
+  let capitalth = document.createElement("th");
+  capitalth.innerText = "Capital City";
+  let continentth = document.createElement("th");
+  continentth.innerText = "Continent";
+  tr.append(countryth, abbreviationth, capitalth, continentth);
   table.append(tr);
   console.log(table);
 }
 
 async function createTableRow(table, row) {
   console.log(row);
-  let tr = document.createElement('tr');
-  let country = document.createElement('td');
+  let tr = document.createElement("tr");
+  let country = document.createElement("td");
   country.innerText = row.Country;
-  let abbreviation = document.createElement('td');
+  let abbreviation = document.createElement("td");
   abbreviation.innerText = row.Abbreviation;
-  let capital = document.createElement('td');
-  capital.innerText = row['Capital City'];
-  let continent = document.createElement('td');
+  let capital = document.createElement("td");
+  capital.innerText = row["Capital City"];
+  let continent = document.createElement("td");
   continent.innerText = row.Continent;
   tr.appendChild(country);
   tr.appendChild(abbreviation);
@@ -42,17 +42,17 @@ async function createTableRow(table, row) {
 // Function to fetch and create table with pagination
 async function createTable(page) {
   const offset = (page - 1) * itemsPerPage; // Calculate offset based on the current page
-  const offsetURL = `${jsonURL}?offset=${offset}&limit=${itemsPerPage}`; //Add offset and limit to the url 
+  const offsetURL = `${jsonURL}?offset=${offset}&limit=${itemsPerPage}`; //Add offset and limit to the url
   // https://main--manishasite--manishamaheswarichalla.aem.live/countries.json?offset=0&limit=20
 
   const resp = await fetch(offsetURL);
   const jsonresp = await resp.json();
 
-  const table = document.createElement('table');
+  const table = document.createElement("table");
   createTableHeader(table);
 
   jsonresp.data.forEach((row, i) => {
-    createTableRow(table,row); // Adjust row numbering based on offset
+    createTableRow(table, row); // Adjust row numbering based on offset
   });
 
   return table;
@@ -60,41 +60,40 @@ async function createTable(page) {
 
 // Create pagination
 function createPaginationControls(totalRows) {
-  const paginationDiv = document.createElement('div');
-  paginationDiv.classList.add('pagination');
+  const paginationDiv = document.createElement("div");
+  paginationDiv.classList.add("pagination");
 
-  const totalPages = Math.ceil(totalRows / itemsPerPage); 
+  const totalPages = Math.ceil(totalRows / itemsPerPage);
   console.log(totalPages);
 
   // Create previous button
-  const prevBtn = document.createElement('button');
+  const prevBtn = document.createElement("button");
   prevBtn.innerText = "Previous";
   prevBtn.disabled = currentPage === 1;
-  prevBtn.addEventListener('click', () => changePage(currentPage - 1));
+  prevBtn.addEventListener("click", () => changePage(currentPage - 1));
 
   paginationDiv.append(prevBtn);
 
   // Create page number buttons
-  for(let i=1; i<= totalPages; i++) {
-    const pageButton = document.createElement('button');
-    pageButton.classList.add('page-number')
+  for (let i = 1; i <= totalPages; i++) {
+    const pageButton = document.createElement("button");
+    pageButton.classList.add("page-number");
     pageButton.innerText = i;
     pageButton.disabled = i === currentPage;
-    pageButton.addEventListener('click', () => changePage(i));
+    pageButton.addEventListener("click", () => changePage(i));
 
     paginationDiv.append(pageButton);
   }
 
   // Create next button
-  const nextBtn = document.createElement('button');
+  const nextBtn = document.createElement("button");
   nextBtn.innerText = "Next";
   nextBtn.disabled = currentPage === totalPages;
-  nextBtn.addEventListener('click', () => changePage(currentPage + 1));
+  nextBtn.addEventListener("click", () => changePage(currentPage + 1));
 
   paginationDiv.append(nextBtn);
 
   return paginationDiv;
-
 }
 
 async function changePage(newPage) {
@@ -108,10 +107,10 @@ async function changePage(newPage) {
   const table = document.querySelector(".custom-list table");
   table.innerHTML = ""; // Clear the current table rows
   const parentDiv = document.querySelector(".custom-list");
- 
+
   parentDiv.innerHTML = ""; // Clear previous content
   parentDiv.append(await createTable(currentPage)); // Update table with new rows
- 
+
   const paginationControls = createPaginationControls(totalRows); // Recreate pagination controls
   parentDiv.append(paginationControls); // Append pagination controls
 }
@@ -119,9 +118,9 @@ async function changePage(newPage) {
 async function getTotalRowCount() {
   const resp = await fetch(jsonURL);
   const jsonresp = await resp.json();
-  return jsonresp.total || 0; //Return total rows from the JSON  
+  return jsonresp.total || 0; //Return total rows from the JSON
 }
- 
+
 export default async function decorate(block) {
   console.log(block);
   const listItems = block.querySelector('a[href$=".json"]');

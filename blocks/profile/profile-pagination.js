@@ -1,7 +1,7 @@
 const rowsPerPage = 20; // Number of rows to show per page
 let currentPage = 1; // Start from the first page
 let jsonURL = ""; // Store the JSON URL
- 
+
 // Function to create table header
 async function createTableHeader(table) {
   let tr = document.createElement("tr");
@@ -19,7 +19,6 @@ async function createTableHeader(table) {
   tr.append(ageth);
   table.append(tr);
 }
- 
 
 async function createTableRow(table, row, i) {
   let tr = document.createElement("tr");
@@ -37,92 +36,92 @@ async function createTableRow(table, row, i) {
   tr.append(ageth);
   table.append(tr);
 }
- 
+
 async function createTable(page) {
   const offset = (page - 1) * rowsPerPage; // Calculate offset based on the current page
   const urlWithParams = `${jsonURL}?offset=${offset}&limit=${rowsPerPage}`; // Add offset and limit to the URL
- 
+
   const resp = await fetch(urlWithParams);
   const json = await resp.json();
- 
+
   const table = document.createElement("table");
   createTableHeader(table);
- 
+
   json.data.forEach((row, i) => {
     createTableRow(table, row, offset + i + 1); // Adjust row numbering based on offset
   });
- 
+
   return table;
 }
- 
+
 function createPaginationControls(totalRows) {
   const paginationDiv = document.createElement("div");
   paginationDiv.classList.add("pagination");
- 
+
   const totalPages = Math.ceil(totalRows / rowsPerPage); // Calculate total pages
- 
+
   const prevButton = document.createElement("button");
   prevButton.textContent = "Previous";
   prevButton.disabled = currentPage === 1; // Disable if on the first page
   prevButton.addEventListener("click", () => changePage(currentPage - 1));
- 
+
   paginationDiv.append(prevButton);
- 
+
   for (let i = 1; i <= totalPages; i++) {
     const pageButton = document.createElement("button");
     pageButton.textContent = i;
     pageButton.classList.add("page-number");
     pageButton.disabled = i === currentPage; // Disable the current page number
     pageButton.addEventListener("click", () => changePage(i));
- 
+
     paginationDiv.append(pageButton);
   }
- 
+
   const nextButton = document.createElement("button");
   nextButton.textContent = "Next";
   nextButton.disabled = currentPage === totalPages; // Disable if on the last page
   nextButton.addEventListener("click", () => changePage(currentPage + 1));
- 
+
   paginationDiv.append(nextButton);
- 
+
   return paginationDiv;
 }
- 
+
 async function changePage(newPage) {
   const totalRows = await getTotalRowCount();
   const totalPages = Math.ceil(totalRows / rowsPerPage);
- 
+
   if (newPage < 1 || newPage > totalPages) return; // Prevent going out of bounds
- 
+
   currentPage = newPage;
   const table = document.querySelector(".custom-list table");
   table.innerHTML = ""; // Clear the current table rows
   const parentDiv = document.querySelector(".custom-list");
- 
+
   parentDiv.innerHTML = ""; // Clear previous content
   parentDiv.append(await createTable(currentPage)); // Update table with new rows
- 
+
   const paginationControls = createPaginationControls(totalRows); // Recreate pagination controls
   parentDiv.append(paginationControls); // Append pagination controls
 }
- 
+
 async function getTotalRowCount() {
   const resp = await fetch(jsonURL);
   const json = await resp.json();
   return json.total || 0; // Return total rows from the JSON
 }
- 
+
 export default async function decorate(block) {
   const listItems = block.querySelector('a[href$=".json"]');
   const parentDiv = document.createElement("div");
   parentDiv.classList.add("custom-list");
- 
+
   if (listItems) {
     jsonURL = listItems.href; // Store the JSON URL for reuse
     parentDiv.append(await createTable(currentPage)); // Initially display the first page
     const totalRows = await getTotalRowCount(); // Fetch total row count for pagination
     const paginationControls = createPaginationControls(totalRows); // Create pagination controls
- 
+
     parentDiv.append(paginationControls); // Append pagination
     listItems.replaceWith(parentDiv); // Replace the old link with the table and pagination
   }
